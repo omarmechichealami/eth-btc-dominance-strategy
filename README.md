@@ -36,4 +36,6 @@ We exit the ETH position if any of the following conditions occur:
 
 <img width="524" height="88" alt="Capture d’écran 2025-10-16 à 18 27 53" src="https://github.com/user-attachments/assets/0983c393-160f-4d32-8d74-00d30d02b62e" />
 <img width="327" height="209" alt="Capture d’écran 2025-10-16 à 19 11 14" src="https://github.com/user-attachments/assets/c69c7cb2-7c83-4bd4-b1bf-e59d3db527f3" />
-<img width="1087" height="527" alt="Capture d’écran 2025-10-16 à 18 28 03" src="https://github.com/user-attachments/assets/e268ad14-1998-4273-8ba0-e410cd3893aa" />
+<img width="1102" height="443" alt="Capture d’écran 2025-10-16 à 19 23 11" src="https://github.com/user-attachments/assets/35bfb6e6-abbc-46a7-8f6b-6c944f880692" />
+<img width="1104" height="443" alt="Capture d’écran 2025-10-16 à 19 23 05" src="https://github.com/user-attachments/assets/ccdbcd7e-d478-496c-921a-fcf8334c19ef" />
+
