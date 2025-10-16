@@ -22,6 +22,7 @@ We enter a long position on ETH only when the following three conditions are met
 ⸻
 
 ❌ Exit Conditions (any one is enough)
+<img width="1087" height="527" alt="Capture d’écran 2025-10-16 à 18 28 03" src="https://github.com/user-attachments/assets/197d7a34-dfbf-4894-82b2-3f48145ef866" />
 
 We exit the ETH position if any of the following conditions occur:
 	1.	ETH breaks below its moving average
