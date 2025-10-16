@@ -1,0 +1,40 @@
+!pip install python-binance pandas
+
+from binance.client import Client
+import pandas as pd
+import datetime
+
+api_key = 'your_api_key_here'
+api_secret = 'your_api_secret_here'
+
+client = Client(api_key, api_secret)
+
+# Define parameters
+symbol = 'ETHUSDT'
+interval = Client.KLINE_INTERVAL_5MINUTE
+start_time = datetime.datetime(2022, 6, 1)
+end_time = datetime.datetime(2025,10, 1)
+
+# Get historical klines (it handles pagination!)
+klines = client.get_historical_klines(
+    symbol=symbol,
+    interval=interval,
+    start_str=str(start_time),
+    end_str=str(end_time)
+)
+
+# Convert to DataFrame
+df = pd.DataFrame(klines, columns=[
+    'Open Time', 'Open', 'High', 'Low', 'Close', 'Volume',
+    'Close Time', 'Quote Asset Volume', 'Number of Trades',
+    'Taker Buy Base Volume', 'Taker Buy Quote Volume', 'Ignore'
+])
+
+# Clean and convert types
+df['Open Time'] = pd.to_datetime(df['Open Time'], unit='ms')
+df.set_index('Open Time', inplace=True)
+df[['Open', 'High', 'Low', 'Close', 'Volume']] = df[['Open', 'High', 'Low', 'Close', 'Volume']].astype(float)
+
+# Save to CSV or continue processing
+df.to_csv("ETHUSDT_5m.csv")
+print("✅ Saved ETHUSDT 5m data.")
