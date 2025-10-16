@@ -22,7 +22,6 @@ We enter a long position on ETH only when the following three conditions are met
 ⸻
 
 ❌ Exit Conditions (any one is enough)
-<img width="1087" height="527" alt="Capture d’écran 2025-10-16 à 18 28 03" src="https://github.com/user-attachments/assets/197d7a34-dfbf-4894-82b2-3f48145ef866" />
 
 We exit the ETH position if any of the following conditions occur:
 	1.	ETH breaks below its moving average
@@ -33,3 +32,8 @@ We exit the ETH position if any of the following conditions occur:
 ➤ ETH trading volume spikes significantly
 ➤ But the candle body is very small (suggesting weak price conviction)
 ➤ Possible sign of manipulation, exhaustion, or hidden selling pressure
+
+
+<img width="524" height="88" alt="Capture d’écran 2025-10-16 à 18 27 53" src="https://github.com/user-attachments/assets/0983c393-160f-4d32-8d74-00d30d02b62e" />
+<img width="348" height="175" alt="Capture d’écran 2025-10-16 à 18 27 48" src="https://github.com/user-attachments/assets/cb5cbf17-ebed-4cb5-abef-28d4e60d7363" />
+<img width="1087" height="527" alt="Capture d’écran 2025-10-16 à 18 28 03" src="https://github.com/user-attachments/assets/e268ad14-1998-4273-8ba0-e410cd3893aa" />
