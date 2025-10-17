@@ -3,16 +3,18 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # ========== PARAMETERS ==========
-START_DATE = "2025-01-01 00:00"
+START_DATE = "2025-01-10 00:00"
 END_DATE   = "2025-10-10 23:55"
 
 ETH_MA = 100
 BTC_MA = 60
-MA_FAST, MA_SLOW = 10, 60  # For ETH/BTC trend
-STOP_LOSS = -0.03
-VOLUME_MULTIPLIER = 2.5
-SMALL_CANDLE_THRESHOLD = 0.001  # 0.1%
-FEE_RATE = 0.0005
+MA_FAST, MA_SLOW = 10, 60
+STOP_LOSS = -0.015
+TAKE_PROFIT = 0.04
+VOLUME_MULTIPLIER = 6
+SMALL_CANDLE_THRESHOLD = 0.01
+TREND_REVERSAL_THRESHOLD = 0.015
+FEE_RATE = 0.0000
 ANN = 252 * (60 * 24 // 5)
 
 # ========== LOAD DATA ==========
@@ -34,20 +36,17 @@ df = pd.DataFrame({
 df['ETH_MA'] = df['ETH_Close'].rolling(ETH_MA).mean()
 df['BTC_MA'] = df['BTC_Close'].rolling(BTC_MA).mean()
 
-# ETH/BTC ratio trend
 eth_btc = df['ETH_Close'] / df['BTC_Close']
 df['ethbtc_fast'] = eth_btc.rolling(MA_FAST).mean()
 df['ethbtc_slow'] = eth_btc.rolling(MA_SLOW).mean()
 df['ethbtc_uptrend'] = df['ethbtc_fast'] > df['ethbtc_slow']
 
-# Volume and candle size anomaly
 df['eth_vol_ma'] = df['ETH_Volume'].rolling(ETH_MA).mean()
 df['eth_volume_spike'] = df['ETH_Volume'] > VOLUME_MULTIPLIER * df['eth_vol_ma']
 df['eth_candle_size'] = (df['ETH_Close'] - df['ETH_Open']).abs() / df['ETH_Open']
 df['small_candle'] = df['eth_candle_size'] < SMALL_CANDLE_THRESHOLD
 df['volume_anomaly'] = df['eth_volume_spike'] & df['small_candle']
 
-# Entry condition
 df['entry_signal'] = (
     (df['ETH_Close'] > df['ETH_MA']) &
     (df['BTC_Close'] > df['BTC_MA']) &
@@ -55,10 +54,9 @@ df['entry_signal'] = (
 ).astype(float)
 
 # ========== BACKTEST ==========
-rets = df['ETH_Close'].pct_change()
-dates = rets.index
-
-equity = 1.0
+dates = df.index
+initial_equity = 1.0
+equity = initial_equity
 equity_curve = []
 position_curve = []
 
@@ -68,46 +66,48 @@ positions = []
 
 for i in range(1, len(dates)):
     t = dates[i]
-    price = df['ETH_Close'].loc[t]
-    ret = rets.loc[t]
-    signal = df['entry_signal'].loc[t]
+    price = df['ETH_Close'].iloc[i]
+    signal = df['entry_signal'].iloc[i]
 
-    # === ENTRY ===
     if not in_position and signal:
         in_position = True
         entry_price = price
-        positions.append({
-            'entry_time': t,
-            'entry_price': price,
-            'exit_time': None,
-            'exit_price': None,
-            'return': None,
-            'exit_reason': None
-        })
+        entry_time = t
 
-    # === EXIT ===
     elif in_position:
-        ma_now = df['ETH_MA'].loc[t]
+        ma_now = df['ETH_MA'].iloc[i]
         current_return = (price / entry_price) - 1
 
-        if (
-            price < ma_now or
-            current_return <= STOP_LOSS or
-            df['volume_anomaly'].loc[t]
-        ):
-            in_position = False
-            reason = (
-                'Trend Reversal' if price < ma_now else
-                'Stop Loss' if current_return <= STOP_LOSS else
+        is_trend_reversal = price < ma_now * (1 - TREND_REVERSAL_THRESHOLD)
+        is_stop_loss = current_return <= STOP_LOSS
+        is_take_profit = current_return >= TAKE_PROFIT
+        is_volume_exit = df['volume_anomaly'].iloc[i]
+
+        if is_trend_reversal or is_stop_loss or is_take_profit or is_volume_exit:
+            exit_price = price
+            return_pct = (exit_price / entry_price) - 1
+            net_return = (1 + return_pct) * (1 - FEE_RATE) ** 2 - 1
+            equity *= (1 + net_return)
+
+            exit_reason = (
+                'Take Profit' if is_take_profit else
+                'Trend Reversal' if is_trend_reversal else
+                'Stop Loss' if is_stop_loss else
                 'Volume Anomaly'
             )
-            positions[-1]['exit_time'] = t
-            positions[-1]['exit_price'] = price
-            positions[-1]['return'] = current_return
-            positions[-1]['exit_reason'] = reason
 
-    # === EQUITY TRACKING ===
-    equity *= (1 + ret if in_position else 1)
+            positions.append({
+                'entry_time': entry_time,
+                'entry_price': entry_price,
+                'exit_time': t,
+                'exit_price': exit_price,
+                'return': return_pct,
+                'net_return': net_return,
+                'exit_reason': exit_reason
+            })
+
+            in_position = False
+
     equity_curve.append(equity)
     position_curve.append(1 if in_position else 0)
 
@@ -137,16 +137,18 @@ a_ann, a_sh, a_mdd = stats(eth_rets)
 b_ann, b_sh, b_mdd = stats(btc_rets)
 
 print("\n=== Strategy Performance on 5m Data ===")
-print(f"Strategy      : AnnRet {ann:.2%} | Sharpe {sh:.2f} | MaxDD {mdd:.2%}")
+BOLD = '\033[1m'
+RESET = '\033[0m'
+print(f"{BOLD}Strategy      : AnnRet {ann:.2%} | Sharpe {sh:.2f} | MaxDD {mdd:.2%}{RESET}")
 print(f"ETH Buy&Hold  : AnnRet {a_ann:.2%} | Sharpe {a_sh:.2f} | MaxDD {a_mdd:.2%}")
 print(f"BTC Buy&Hold  : AnnRet {b_ann:.2%} | Sharpe {b_sh:.2f} | MaxDD {b_mdd:.2%}")
 
-# ========== PLOT ==========
-plt.figure(figsize=(12,6))
-(1 + strat_returns).cumprod().plot(label='Strategy', lw=2)
-(1 + eth_rets).cumprod().plot(label='ETH Buy&Hold', ls='--', color='orange')
-(1 + btc_rets).cumprod().plot(label='BTC Buy&Hold', ls='--', color='green')
-plt.title(f"Strategy vs ETH/BTC Buy & Hold — {START_DATE} → {END_DATE}")
+# ========== PLOTS ==========
+plt.figure(figsize=(12, 5))
+(1 + strat_returns).cumprod().plot(label='Strategy', lw=2, color='blue')
+(1 + eth_rets).cumprod().plot(label='ETH Buy&Hold', lw=1.5, ls='--', color='orange')
+(1 + btc_rets).cumprod().plot(label='BTC Buy&Hold', lw=1.5, ls='--', color='green')
+plt.title(f"Strategy vs ETH & BTC Buy & Hold — {START_DATE} → {END_DATE}")
 plt.ylabel("Cumulative Return")
 plt.grid(True)
 plt.legend()
@@ -154,18 +156,19 @@ plt.tight_layout()
 plt.show()
 
 # ========== TRADING ACTIVITY ==========
-trades_closed = [p for p in positions if p['exit_time']]
+trades_closed = positions
 total_trades = len(trades_closed)
 reasons = pd.Series([p['exit_reason'] for p in trades_closed]).value_counts()
 
 gross_perf = equity_series.iloc[-1]
-fees = total_trades * FEE_RATE
-net_perf = gross_perf * (1 - fees)
+net_perf = gross_perf
 
 print("\n=== Trading Activity ===")
 print(f"Total trades executed     : {total_trades}")
 for reason, count in reasons.items():
     print(f"Exits from {reason:<16}: {count}")
-print(f"Estimated fee impact      : -{fees:.2%}")
+print(f"Estimated total fees paid : -{total_trades * FEE_RATE * 2:.2%}")
 print(f"Gross Return              : {(gross_perf - 1):.2%}")
 print(f"Net Return After Fees     : {(net_perf - 1):.2%}")
+print(f"Winning trades            : {len([p for p in trades_closed if p['net_return'] > 0])}")
+print(f"Losing trades             : {len([p for p in trades_closed if p['net_return'] <= 0])}")
