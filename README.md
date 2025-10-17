@@ -46,7 +46,10 @@ Please note that maximum drawdown (MaxDD) may be underestimated in this strategy
 This is because the stop-loss logic is based on the close of each 5-minute candle, and not on intrabar (tick-by-tick or second-level) data.
 
 Since second-level historical data is not available, it’s impossible to detect price spikes or wicks that could have triggered a stop-loss mid-candle.
-Therefore, in real-world conditions, the drawdown could be slightly higher than shown in the backtest.
+Therefore, in real-world conditions, the drawdown could be slightly lower than shown in the backtest.
+
+Max Drawdown is not the worst trade = The largest peak-to-trough decline in your equity curve, over time. (Several losing trades in a row)
+
 <img width="552" height="83" alt="Capture d’écran 2025-10-17 à 13 26 06" src="https://github.com/user-attachments/assets/edb26d06-cf34-4be5-98ed-f8bbcfe69cc1" />
 
 <img width="1091" height="439" alt="Capture d’écran 2025-10-17 à 13 26 13" src="https://github.com/user-attachments/assets/d3c0577d-954a-4b92-9e25-8e77ee607aee" />
