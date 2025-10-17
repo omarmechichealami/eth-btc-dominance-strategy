@@ -4,38 +4,51 @@ A backtested trading strategy that goes long on Ethereum when both ETH and BTC a
 
 🧠 Strategy Overview — ETH/BTC Dominance
 
-This strategy is a long-only model on Ethereum, designed to enter and exit positions based on trend strength and volume-price behavior.
+This strategy is a long-only momentum model focused on Ethereum (ETH), designed to ride strong trends while avoiding weak or manipulated market conditions. It uses Bitcoin (BTC) and ETH/BTC ratio as trend confirmation filters to increase edge and robustness.
 
 ⸻
 
-✅ Entry Conditions (all must be true)
+✅ Entry Conditions — All Must Be True
 
-We enter a long position on ETH only when the following three conditions are met:
-	1.	Ethereum is in an uptrend
-➤ ETH price is above its moving average
-	2.	Bitcoin is in an uptrend
-➤ BTC price is above its moving average
-	3.	Ethereum is dominating Bitcoin
-➤ The ETH/BTC ratio is in an uptrend
-➤ Defined as a short-term moving average of ETH/BTC being above the long-term moving average
+We enter a long position on ETH only when all three of the following conditions are satisfied:
+	1.	ETH is in an uptrend
+→ ETH price is above its own moving average (e.g. 100-period MA)
+	2.	BTC is in an uptrend
+→ BTC price is above its own moving average (e.g. 60-period MA)
+	3.	ETH is outperforming BTC (ETH is dominating)
+→ The ETH/BTC ratio is rising
+→ Specifically, a short-term moving average of ETH/BTC is above its long-term moving average
+→ This shows ETH is gaining strength relative to BTC
 
 ⸻
 
-❌ Exit Conditions (any one is enough)
+❌ Exit Conditions — Any One Is Enough
 
-We exit the ETH position if any of the following conditions occur:
-	1.	ETH breaks below its moving average
-➤ Indicates a possible trend reversal
-	2.	Stop-loss is triggered at -3%
-➤ Capital protection during unexpected drops
-	3.	Volume anomaly without price movement
-➤ ETH trading volume spikes significantly
-➤ But the candle body is very small (suggesting weak price conviction)
-➤ Possible sign of manipulation, exhaustion, or hidden selling pressure
+We exit the position as soon as any of the following exit conditions are met:
+	1.	Trend Reversal Detected
+→ ETH price drops more than a threshold below its moving average
+→ Suggests a weakening trend
+	2.	Stop-Loss Triggered
+→ Trade incurs a loss greater than -1.5%
+→ Protects against large unexpected drawdowns
+	3.	Take-Profit Triggered
+→ Trade reaches +4% gain
+→ Locks in profits on sharp moves
+	4.	Volume Anomaly Detected
+→ Unusually high volume (e.g. 6× average volume)
+→ But with a very small candle body (low price movement)
+→ Indicates potential hidden selling, exhaustion, or manipulation
+→ We exit to avoid unfavorable conditions
 
+⚠️ Disclaimer
 
-<img width="524" height="88" alt="Capture d’écran 2025-10-16 à 18 27 53" src="https://github.com/user-attachments/assets/0983c393-160f-4d32-8d74-00d30d02b62e" />
-<img width="327" height="209" alt="Capture d’écran 2025-10-16 à 19 11 14" src="https://github.com/user-attachments/assets/c69c7cb2-7c83-4bd4-b1bf-e59d3db527f3" />
-<img width="1102" height="443" alt="Capture d’écran 2025-10-16 à 19 23 11" src="https://github.com/user-attachments/assets/35bfb6e6-abbc-46a7-8f6b-6c944f880692" />
-<img width="1104" height="443" alt="Capture d’écran 2025-10-16 à 19 23 05" src="https://github.com/user-attachments/assets/ccdbcd7e-d478-496c-921a-fcf8334c19ef" />
+Please note that maximum drawdown (MaxDD) may be underestimated in this strategy.
+This is because the stop-loss logic is based on the close of each 5-minute candle, and not on intrabar (tick-by-tick or second-level) data.
 
+Since second-level historical data is not available, it’s impossible to detect price spikes or wicks that could have triggered a stop-loss mid-candle.
+Therefore, in real-world conditions, the drawdown could be slightly higher than shown in the backtest.
+<img width="552" height="83" alt="Capture d’écran 2025-10-17 à 13 26 06" src="https://github.com/user-attachments/assets/edb26d06-cf34-4be5-98ed-f8bbcfe69cc1" />
+
+<img width="1091" height="439" alt="Capture d’écran 2025-10-17 à 13 26 13" src="https://github.com/user-attachments/assets/d3c0577d-954a-4b92-9e25-8e77ee607aee" />
+<img width="531" height="320" alt="Capture d’écran 2025-10-17 à 13 26 19" src="https://github.com/user-attachments/assets/435d930b-f843-46ff-8fb3-eff7b8f949d0" />
+<img width="323" height="207" alt="Capture d’écran 2025-10-17 à 13 26 15" src="https://github.com/user-attachments/assets/13ddd8aa-89c2-4b68-92e2-2126540ff62f" />
